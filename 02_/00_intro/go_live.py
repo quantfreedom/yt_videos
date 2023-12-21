@@ -1,5 +1,5 @@
 import numpy as np
-from ex_strat_004 import RSIRisingFalling
+from strategy import RSIRisingFalling
 from logging import getLogger
 from my_stuff import EmailSenderInfo, MufexTestKeys
 from quantfreedom.custom_logger import set_loggers

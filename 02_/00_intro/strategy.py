@@ -111,7 +111,7 @@ class RSIRisingFalling(Strategy):
     def long_log_indicator_settings(self, ind_set_index: int):
         logger.info(
             f"Indicator Settings\
-            \nIndex= {ind_set_index}\
+            \nIndicator Settings Index= {ind_set_index}\
             \nrsi_length= {self.rsi_length}\
             \nrsi_is_below= {self.rsi_is_below}"
         )
@@ -174,7 +174,8 @@ class RSIRisingFalling(Strategy):
 
     def short_log_indicator_settings(self, ind_set_index: int):
         logger.info(
-            f"Indicator Settings Index= {ind_set_index}\
+            f"Indicator Settings\
+            \nIndicator Settings Index= {ind_set_index}\
             \nrsi_length= {self.rsi_length}\
             \nrsi_is_above= {self.rsi_is_above}"
         )
