@@ -105,7 +105,7 @@ class RSIRisingFalling(Strategy):
             self.exit_prices = np.full_like(self.rsi, np.nan)
 
         except Exception as e:
-            logger.info(f"Exception long_set_entries_exits_array -> {e}")
+            logger.error(f"Exception long_set_entries_exits_array -> {e}")
             raise Exception(f"Exception long_set_entries_exits_array -> {e}")
 
     def long_log_indicator_settings(self, ind_set_index: int):
