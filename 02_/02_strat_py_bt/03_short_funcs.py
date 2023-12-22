@@ -77,7 +77,7 @@ class RSIRisingFalling(Strategy):
     ):
         try:
             self.rsi_is_below = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
-            self.rsi_length = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
+            self.rsi_length = self.indicator_settings_arrays.rsi_length[ind_set_index]
             self.current_ind_settings = IndicatorSettingsArrays(
                 rsi_is_above=np.nan, rsi_is_below=self.rsi_is_below, rsi_length=self.rsi_length
             )
@@ -127,13 +127,83 @@ class RSIRisingFalling(Strategy):
         logger.info(
             f"Entry time!!! {self.rsi[bar_index-2]} > {self.rsi[bar_index-1]} < {self.rsi[bar_index]} and {self.rsi[bar_index]} < {self.rsi_is_below}"
         )
-        
+
     #######################################################
     #######################################################
     #######################################################
     ##################      short    ######################
     ##################      short    ######################
     ##################      short    ######################
+    #######################################################
+    #######################################################
+    #######################################################
+
+    def short_set_entries_exits_array(
+        self,
+        candles: np.array,
+        ind_set_index: int,
+    ):
+        try:
+            self.rsi_is_above = self.indicator_settings_arrays.rsi_is_above[ind_set_index]
+            self.rsi_length = self.indicator_settings_arrays.rsi_length[ind_set_index]
+            self.current_ind_settings = IndicatorSettingsArrays(
+                rsi_is_above=self.rsi_is_above,
+                rsi_is_below=np.nan,
+                rsi_length=self.rsi_length,
+            )
+
+            rsi = rsi_tv(
+                source=candles[: CandleBodyType.Close],
+                length=self.rsi_length,
+            )
+
+            self.rsi = np.around(rsi, 1)
+            logger.info(f"Created RSI rsi_length= {self.rsi_length}")
+
+            prev_rsi = np.roll(self.rsi, 1)
+            prev_rsi[0] = np.nan
+
+            prev_prev_rsi = np.roll(prev_rsi, 1)
+            prev_prev_rsi[0] = np.nan
+
+            rising = prev_prev_rsi < prev_rsi
+            falling = self.rsi < prev_rsi
+            is_above = self.rsi > self.rsi_is_above
+
+            self.entries = np.where(is_above & falling & rising, True, False)
+            self.entry_signals = np.where(self.entries, self.rsi, np.nan)
+
+            self.exit_prices = np.full_like(self.rsi, np.nan)
+        except Exception as e:
+            logger.error(f"Exception short_set_entries_exits_array -> {e}")
+            raise Exception(f"Exception short_set_entries_exits_array -> {e}")
+
+    def short_log_indicator_settings(
+        self,
+        ind_set_index: int,
+    ):
+        logger.info(
+            f"Indicator Settings\
+        \nIndicator Settings Index= {ind_set_index}\
+        \nrsi_length= {self.rsi_length}\
+        \nrsi_is_above= {self.rsi_is_above}"
+        )
+
+    def short_entry_message(
+        self,
+        bar_index: int,
+    ):
+        logger.info("\n\n")
+        logger.info(
+            f"Entry time!!! {self.rsi[bar_index-2]} < {self.rsi[bar_index-1]} > {self.rsi[bar_index]} and {self.rsi[bar_index]} > {self.rsi_is_above}"
+        )
+
+    #######################################################
+    #######################################################
+    #######################################################
+    ##################      Plot     ######################
+    ##################      Plot     ######################
+    ##################      Plot     ######################
     #######################################################
     #######################################################
     #######################################################
