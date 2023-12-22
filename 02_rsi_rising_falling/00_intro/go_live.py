@@ -1,13 +1,13 @@
 import numpy as np
-from strategy import RSIRisingFalling
 from logging import getLogger
-from my_stuff import EmailSenderInfo, MufexTestKeys
 from quantfreedom.custom_logger import set_loggers
 from quantfreedom.email_sender import EmailSender
 from quantfreedom.exchanges.mufex_exchange.mufex import Mufex
 from quantfreedom.helper_funcs import dos_cart_product, get_dos, log_dynamic_order_settings
 from quantfreedom.live_mode import LiveTrading
 from quantfreedom.order_handler.order import OrderHandler
+from live_strat import RSIRisingFalling
+from my_stuff import EmailSenderInfo, MufexTestKeys
 
 from quantfreedom.enums import (
     CandleBodyType,

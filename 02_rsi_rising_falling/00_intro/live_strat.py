@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from numpy.core.multiarray import array as array
 import plotly.graph_objects as go
 
 from datetime import datetime
@@ -25,7 +26,7 @@ class RSIRisingFalling(Strategy):
     def __init__(
         self,
         long_short: str,
-        rsi_length: np.array,
+        rsi_length: int,
         rsi_is_above: np.array = np.array([0]),
         rsi_is_below: np.array = np.array([0]),
     ) -> None:
@@ -39,6 +40,7 @@ class RSIRisingFalling(Strategy):
                 rsi_length=rsi_length,
             )
         )
+
         self.indicator_settings_arrays: IndicatorSettingsArrays = IndicatorSettingsArrays(
             rsi_is_above=cart_arrays[0],
             rsi_is_below=cart_arrays[1],
@@ -56,7 +58,7 @@ class RSIRisingFalling(Strategy):
             self.log_indicator_settings = self.short_log_indicator_settings
             self.entry_message = self.short_entry_message
             self.live_evalutate = self.short_live_evaluate
-            self.chart_title = "Short Signal"
+            self.chart_title = "short Signal"
 
     #######################################################
     #######################################################
@@ -76,17 +78,17 @@ class RSIRisingFalling(Strategy):
         try:
             self.rsi_is_below = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
             self.rsi_length = self.indicator_settings_arrays.rsi_length[ind_set_index]
+            self.h_line = self.rsi_is_below
             self.current_ind_settings = IndicatorSettingsArrays(
-                rsi_is_above=np.nan,
-                rsi_is_below=self.rsi_is_below,
-                rsi_length=self.rsi_length,
+                rsi_is_above=np.nan, rsi_is_below=self.rsi_is_below, rsi_length=self.rsi_length
             )
+
             rsi = rsi_tv(
                 source=candles[:, CandleBodyType.Close],
                 length=self.rsi_length,
             )
 
-            self.rsi = np.around(rsi, 2)
+            self.rsi = np.around(rsi, 1)
             logger.info(f"Created RSI rsi_length= {self.rsi_length}")
 
             prev_rsi = np.roll(self.rsi, 1)
@@ -103,20 +105,25 @@ class RSIRisingFalling(Strategy):
             self.entry_signals = np.where(self.entries, self.rsi, np.nan)
 
             self.exit_prices = np.full_like(self.rsi, np.nan)
-
         except Exception as e:
             logger.error(f"Exception long_set_entries_exits_array -> {e}")
             raise Exception(f"Exception long_set_entries_exits_array -> {e}")
 
-    def long_log_indicator_settings(self, ind_set_index: int):
+    def long_log_indicator_settings(
+        self,
+        ind_set_index: int,
+    ):
         logger.info(
             f"Indicator Settings\
-            \nIndicator Settings Index= {ind_set_index}\
-            \nrsi_length= {self.rsi_length}\
-            \nrsi_is_below= {self.rsi_is_below}"
+        \nIndicator Settings Index= {ind_set_index}\
+        \nrsi_length= {self.rsi_length}\
+        \nrsi_is_below= {self.rsi_is_below}"
         )
 
-    def long_entry_message(self, bar_index: int):
+    def long_entry_message(
+        self,
+        bar_index: int,
+    ):
         logger.info("\n\n")
         logger.info(
             f"Entry time!!! {self.rsi[bar_index-2]} > {self.rsi[bar_index-1]} < {self.rsi[bar_index]} and {self.rsi[bar_index]} < {self.rsi_is_below}"
@@ -139,18 +146,20 @@ class RSIRisingFalling(Strategy):
     ):
         try:
             self.rsi_is_above = self.indicator_settings_arrays.rsi_is_above[ind_set_index]
+            self.h_line = self.rsi_is_above
             self.rsi_length = self.indicator_settings_arrays.rsi_length[ind_set_index]
             self.current_ind_settings = IndicatorSettingsArrays(
                 rsi_is_above=self.rsi_is_above,
                 rsi_is_below=np.nan,
                 rsi_length=self.rsi_length,
             )
+
             rsi = rsi_tv(
                 source=candles[:, CandleBodyType.Close],
                 length=self.rsi_length,
             )
 
-            self.rsi = np.around(rsi, 2)
+            self.rsi = np.around(rsi, 1)
             logger.info(f"Created RSI rsi_length= {self.rsi_length}")
 
             prev_rsi = np.roll(self.rsi, 1)
@@ -163,24 +172,29 @@ class RSIRisingFalling(Strategy):
             falling = self.rsi < prev_rsi
             is_above = self.rsi > self.rsi_is_above
 
-            self.entries = np.where(is_above & rising & falling, True, False)
+            self.entries = np.where(is_above & falling & rising, True, False)
             self.entry_signals = np.where(self.entries, self.rsi, np.nan)
 
             self.exit_prices = np.full_like(self.rsi, np.nan)
-
         except Exception as e:
-            logger.info(f"Exception short_set_entries_exits_array -> {e}")
+            logger.error(f"Exception short_set_entries_exits_array -> {e}")
             raise Exception(f"Exception short_set_entries_exits_array -> {e}")
 
-    def short_log_indicator_settings(self, ind_set_index: int):
+    def short_log_indicator_settings(
+        self,
+        ind_set_index: int,
+    ):
         logger.info(
             f"Indicator Settings\
-            \nIndicator Settings Index= {ind_set_index}\
-            \nrsi_length= {self.rsi_length}\
-            \nrsi_is_above= {self.rsi_is_above}"
+        \nIndicator Settings Index= {ind_set_index}\
+        \nrsi_length= {self.rsi_length}\
+        \nrsi_is_above= {self.rsi_is_above}"
         )
 
-    def short_entry_message(self, bar_index: int):
+    def short_entry_message(
+        self,
+        bar_index: int,
+    ):
         logger.info("\n\n")
         logger.info(
             f"Entry time!!! {self.rsi[bar_index-2]} < {self.rsi[bar_index-1]} > {self.rsi[bar_index]} and {self.rsi[bar_index]} > {self.rsi_is_above}"
@@ -203,14 +217,13 @@ class RSIRisingFalling(Strategy):
         self.rsi_is_below = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
         self.rsi_is_above = self.indicator_settings_arrays.rsi_is_above[ind_set_index]
         self.rsi_length = self.indicator_settings_arrays.rsi_length[ind_set_index]
-
         self.current_ind_settings = IndicatorSettingsArrays(
             rsi_is_above=self.rsi_is_above,
             rsi_is_below=self.rsi_is_below,
             rsi_length=self.rsi_length,
         )
 
-        logger.info(f"live_set_ind_settings finished")
+        logger.info("live_set_ind_settings finished")
 
     def long_live_evaluate(
         self,
@@ -222,8 +235,7 @@ class RSIRisingFalling(Strategy):
                 length=self.rsi_length,
             )
 
-            self.rsi = np.around(rsi, 2)
-
+            self.rsi = np.around(rsi, 1)
             logger.info(f"Created RSI rsi_length= {self.rsi_length}")
 
             current_rsi = self.rsi[-1]
@@ -237,13 +249,10 @@ class RSIRisingFalling(Strategy):
                 )
                 return True
             else:
-                logger.info(
-                    f"No Entry {prev_prev_rsi} > {prev_rsi} < {current_rsi} and {current_rsi} < {self.rsi_is_below}"
-                )
+                logger.info("No Entry")
                 return False
-
         except Exception as e:
-            logger.info(f"Exception long_live_evaluate -> {e}")
+            logger.error(f"Exception long_live_evaluate -> {e}")
             raise Exception(f"Exception long_live_evaluate -> {e}")
 
     def short_live_evaluate(
@@ -256,8 +265,7 @@ class RSIRisingFalling(Strategy):
                 length=self.rsi_length,
             )
 
-            self.rsi = np.around(rsi, 2)
-
+            self.rsi = np.around(rsi, 1)
             logger.info(f"Created RSI rsi_length= {self.rsi_length}")
 
             current_rsi = self.rsi[-1]
@@ -271,13 +279,10 @@ class RSIRisingFalling(Strategy):
                 )
                 return True
             else:
-                logger.info(
-                    f"No Entry {prev_prev_rsi} < {prev_rsi} > {current_rsi} and {current_rsi} > {self.rsi_is_above}"
-                )
+                logger.info("No Entry")
                 return False
-
         except Exception as e:
-            logger.info(f"Exception short_live_evaluate -> {e}")
+            logger.error(f"Exception short_live_evaluate -> {e}")
             raise Exception(f"Exception short_live_evaluate -> {e}")
 
     #######################################################
@@ -294,24 +299,20 @@ class RSIRisingFalling(Strategy):
         self,
         candles: np.array,
     ):
-        timestamp = candles[:, CandleBodyType.Timestamp]
-        datetimes = timestamp.astype("datetime64[ms]")
+        datetimes = candles[:, CandleBodyType.Timestamp].astype("datetime64[ms]")
 
         fig = go.Figure()
-        # RSI
         fig.add_scatter(
             x=datetimes,
             y=self.rsi,
             name="RSI",
             line_color="yellow",
         )
-
-        # RSI Entries
         fig.add_scatter(
             x=datetimes,
             y=self.entry_signals,
             mode="markers",
-            name="Entries",
+            name="entries",
             marker=dict(
                 size=12,
                 symbol="circle",
@@ -321,6 +322,11 @@ class RSIRisingFalling(Strategy):
                     color="DarkSlateGrey",
                 ),
             ),
+        )
+        fig.add_hline(
+            y=self.h_line,
+            opacity=0.3,
+            line_color="red",
         )
         fig.update_layout(
             height=500,
@@ -340,24 +346,20 @@ class RSIRisingFalling(Strategy):
         self,
         candles: np.array,
     ):
-        timestamp = candles[-50:, CandleBodyType.Timestamp]
-        datetimes = timestamp.astype("datetime64[ms]")
+        datetimes = candles[:, CandleBodyType.Timestamp].astype("datetime64[ms]")
 
         fig = go.Figure()
-        # RSI
         fig.add_scatter(
-            x=datetimes,
+            x=datetimes[-50:],
             y=self.rsi[-50:],
             name="RSI",
             line_color="yellow",
         )
-
-        # RSI Entries
         fig.add_scatter(
             x=[datetimes[-1]],
             y=[self.rsi[-1]],
             mode="markers",
-            name="Entries",
+            name="entries",
             marker=dict(
                 size=12,
                 symbol="circle",
