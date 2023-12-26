@@ -391,3 +391,6 @@ class RSIRisingFalling(Strategy):
         )
         fig.write_image(entry_filename)
         return entry_filename
+
+
+print()
