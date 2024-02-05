@@ -2,6 +2,7 @@ my_stuff/
 logs/
 docs/
 site/
+ignore_me/
 .ipynb_checkpoints
 .vscode
 .idea
