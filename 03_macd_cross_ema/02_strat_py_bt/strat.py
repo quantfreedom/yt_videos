@@ -52,7 +52,9 @@ class MACDandEMA(Strategy):
                 slow_length=slow_length,
             )
         )
+        
         cart_arrays = cart_arrays.T[cart_arrays[1] < cart_arrays[4]].T
+        
         self.indicator_settings_arrays: IndicatorSettingsArrays = IndicatorSettingsArrays(
             ema_length=cart_arrays[0].astype(np.int_),
             fast_length=cart_arrays[1].astype(np.int_),
@@ -93,16 +95,22 @@ class MACDandEMA(Strategy):
             closing_prices = candles[:, CandleBodyType.Close]
             low_prices = candles[:, CandleBodyType.Low]
 
+            self.ema_length = self.indicator_settings_arrays.ema_length[ind_set_index]
+            self.fast_length = self.indicator_settings_arrays.fast_length[ind_set_index]
+            self.macd_below = self.indicator_settings_arrays.macd_below[ind_set_index]
+            self.signal_smoothing = self.indicator_settings_arrays.signal_smoothing[ind_set_index]
+            self.slow_length = self.indicator_settings_arrays.slow_length[ind_set_index]
+
             self.histogram, self.macd, self.signal = macd_tv(
                 source=closing_prices,
-                fast_length=self.indicator_settings_arrays.fast_length,
-                slow_length=self.indicator_settings_arrays.slow_length,
-                signal_smoothing=self.indicator_settings_arrays.signal_smoothing,
+                fast_length=self.fast_length,
+                slow_length=self.slow_length,
+                signal_smoothing=self.signal_smoothing,
             )
 
             self.ema = ema_tv(
                 source=closing_prices,
-                length=self.indicator_settings_arrays.ema_length,
+                length=self.ema_length,
             )
 
             prev_macd = np.roll(self.macd, 1)
@@ -149,9 +157,7 @@ class MACDandEMA(Strategy):
         bar_index: int,
     ):
         logger.info("\n\n")
-        logger.info(
-            f"Entry time!!!"
-        )
+        logger.info(f"Entry time!!!")
 
     #######################################################
     #######################################################

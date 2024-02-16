@@ -78,8 +78,11 @@ class RSIRisingFalling(Strategy):
         try:
             self.rsi_is_below = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
             self.rsi_length = self.indicator_settings_arrays.rsi_is_below[ind_set_index]
+            
             self.current_ind_settings = IndicatorSettingsArrays(
-                rsi_is_above=np.nan, rsi_is_below=self.rsi_is_below, rsi_length=self.rsi_length
+                rsi_is_above=np.nan,
+                rsi_is_below=self.rsi_is_below,
+                rsi_length=self.rsi_length,
             )
 
             rsi = rsi_tv(
@@ -127,7 +130,7 @@ class RSIRisingFalling(Strategy):
         logger.info(
             f"Entry time!!! {self.rsi[bar_index-2]} > {self.rsi[bar_index-1]} < {self.rsi[bar_index]} and {self.rsi[bar_index]} < {self.rsi_is_below}"
         )
-        
+
     #######################################################
     #######################################################
     #######################################################
