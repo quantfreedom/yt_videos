@@ -3,14 +3,13 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from quantfreedom.enums import CandleBodyType
+from quantfreedom.helper_funcs import dl_ex_candles, cart_product
+from quantfreedom.indicators.tv_indicators import macd_tv, ema_tv
+from quantfreedom.strategies.strategy import Strategy
+
 from logging import getLogger
 from typing import NamedTuple
-from quantfreedom.indicators.tv_indicators import macd_tv, ema_tv
-
-
-from quantfreedom.helper_funcs import cart_product
-from quantfreedom.enums import CandleBodyType
-from quantfreedom.strategies.strategy import Strategy
 
 
 logger = getLogger("info")
@@ -39,7 +38,7 @@ class MACDandEMA(Strategy):
         macd_below: np.array,
         signal_smoothing: np.array,
         slow_length: np.array,
-    ) -> None:
+    ):
         self.long_short = long_short
         self.log_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -52,9 +51,9 @@ class MACDandEMA(Strategy):
                 slow_length=slow_length,
             )
         )
-        
+
         cart_arrays = cart_arrays.T[cart_arrays[1] < cart_arrays[4]].T
-        
+
         self.indicator_settings_arrays: IndicatorSettingsArrays = IndicatorSettingsArrays(
             ema_length=cart_arrays[0].astype(np.int_),
             fast_length=cart_arrays[1].astype(np.int_),
@@ -119,21 +118,22 @@ class MACDandEMA(Strategy):
             prev_signal = np.roll(self.signal, 1)
             prev_signal[0] = np.nan
 
-            prev_macd_below_signal = prev_macd < prev_signal
-            current_macd_above_signal = self.macd > self.signal
+            macd_below_signal = prev_macd < prev_signal
+            macd_above_signal = self.macd > self.signal
             low_price_below_ema = low_prices > self.ema
             macd_below_number = self.macd < self.macd_below
 
             self.entries = (
                 (low_price_below_ema == True)
-                & (prev_macd_below_signal == True)
-                & (current_macd_above_signal == True)
+                & (macd_below_signal == True)
+                & (macd_above_signal == True)
                 & (macd_below_number == True)
             )
 
             self.entry_signals = np.where(self.entries, self.macd, np.nan)
 
             self.exit_prices = np.full_like(self.entries, np.nan)
+
         except Exception as e:
             logger.error(f"Exception long_set_entries_exits_array -> {e}")
             raise Exception(f"Exception long_set_entries_exits_array -> {e}")
