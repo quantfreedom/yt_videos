@@ -7,7 +7,7 @@ from quantfreedom.helper_funcs import dos_cart_product, get_dos, log_dynamic_ord
 from quantfreedom.live_mode import LiveTrading
 from quantfreedom.order_handler.order import OrderHandler
 from live_strat import RSIRisingFalling
-from my_stuff import EmailSenderInfo, MufexTestKeys
+from env import EmailSenderInfo, MufexTestKeys
 
 from quantfreedom.enums import (
     CandleBodyType,

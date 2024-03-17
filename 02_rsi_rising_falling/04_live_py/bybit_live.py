@@ -6,7 +6,7 @@ from quantfreedom.helper_funcs import dos_cart_product, get_dos, log_dynamic_ord
 from quantfreedom.live_mode import LiveTrading
 from quantfreedom.order_handler.order import OrderHandler
 from live_strat import RSIRisingFalling
-from my_stuff import EmailSenderInfo, BybitTestKeys
+from env import EmailSenderInfo, BybitTestKeys
 from quantfreedom.exchanges.bybit_exchange.bybit import Bybit
 
 from quantfreedom.enums import (
