@@ -1,19 +1,25 @@
-logs/
+z_logs/
 docs/
 site/
+logs/
 ignore_me/
+
+dist
+numba_cache
+
+quantfreedom.egg-info
+thinking.txt
+
 .ipynb_checkpoints
 .vscode
 .idea
 .mypy_cache
 .pytest_cache
+
 *.mustache
 *.csv
 *.h5
-dist
-quantfreedom.egg-info
-numba_cache
-thinking.txt
+*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
