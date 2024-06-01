@@ -2,8 +2,7 @@ from random import randint
 from time import perf_counter, sleep
 from asyncio import gather, run, sleep as async_sleep
 
-# The highest Pokemon id
-MAX_POKEMON = 898
+
 NAMES = [
     "jay",
     "jim",
@@ -46,13 +45,11 @@ def get_random_name() -> str:
     sleep(0.5)
     return name
 
-
 async def get_random_name_async() -> str:
     name_id = randint(0, len(NAMES) - 1)
     name = NAMES[name_id]
     await async_sleep(1)
     return name
-
 
 async def main() -> None:
 
@@ -61,11 +58,10 @@ async def main() -> None:
     for _ in range(8):
         print(get_random_name())
     print(f"Total time (synchronous): {perf_counter() - time_before}" + "\n")
-
+    
     # asynchronous call
     time_before = perf_counter()
     print(await gather(*[get_random_name_async() for _ in range(8)]))
     print(f"Total time (asynchronous): {perf_counter() - time_before}")
-
-
+    
 run(main())
