@@ -302,14 +302,13 @@ below_rsi_pp= {below_rsi_pp}
 
     def long_live_bt(
         self,
-        bar_index: int,
         beg: int,
         candles: FootprintCandlesTuple,
         end: int,
     ):
 
         try:
-            candles = self.reg_candle_chunk(
+            candles = self.candle_chunk(
                 candles=candles,
                 beg=beg,
                 end=end,
