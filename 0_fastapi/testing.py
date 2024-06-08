@@ -1,4 +1,3 @@
-# https://www.youtube.com/watch?v=rHIj92MwisA
 import uvicorn
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel, model_validator, field_validator, validator
@@ -27,12 +26,12 @@ class Item(BaseModel):
             }
         }
 
-    @validator("price")
-    @classmethod
-    def price_must_be_positive(cls, value):
-        if value < 0:
-            raise ValueError("Price must be positive")
-        return value
+    # @validator("price")
+    # @classmethod
+    # def price_must_be_positive(cls, value):
+    #     if value < 0:
+    #         raise ValueError("Price must be positive")
+    #     return value
 
     # @field_validator("price")
     # @classmethod

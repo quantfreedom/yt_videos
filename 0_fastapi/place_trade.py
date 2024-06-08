@@ -1,9 +1,9 @@
-# https://www.youtube.com/watch?v=rHIj92MwisA
 import uvicorn
 from fastapi import FastAPI, status, HTTPException
-from pydantic import BaseModel, model_validator, field_validator
+from pydantic import BaseModel, model_validator
 from quantfreedom.exchanges import Mufex
 from my_keys import MufexKeys
+from time import sleep
 
 app = FastAPI()
 
@@ -23,8 +23,8 @@ class Item(BaseModel):
         json_schema_extra = {
             "example": {
                 "asset_size": 0.005,
-                "sl_price": 70000,
-                "tp_price": 73250,
+                "sl_price": 68400,
+                "tp_price": 70400,
             }
         }
 
@@ -34,7 +34,7 @@ class Item(BaseModel):
             if value < 0:
                 raise HTTPException(
                     status_code=500,
-                    detail=f"{field} must be positive. It was {value}",
+                    detail=f"{field} must be positive. It is {value}",
                 )
         return self
 
@@ -47,11 +47,13 @@ async def create_item(item: Item):
         asset_size=item.asset_size,
         symbol=symbol,
     )
+    sleep(.2)
     sl_id = Mufex_Test_Neo.create_long_hedge_mode_sl_order(
         asset_size=item.asset_size,
         symbol=symbol,
         sl_price=item.sl_price,
     )
+    sleep(.2)
     tp_id = Mufex_Test_Neo.create_long_hedge_mode_tp_limit_order(
         asset_size=item.asset_size,
         symbol=symbol,
