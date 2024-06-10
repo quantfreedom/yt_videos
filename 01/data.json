@@ -1,0 +1,57 @@
+[
+  {
+    "asset_size": 0.0013756,
+    "asset_tick_step": 3,
+    "entry_price": null,
+    "entry_type": "Market",
+    "exchange": "MUFEX",
+    "long_short": "LONG",
+    "sl_price": 69500,
+    "symbol": "btcusdt",
+    "tp_price": 71000
+  },
+  {
+    "asset_size": 0.05,
+    "asset_tick_step": 3,
+    "entry_price": null,
+    "entry_type": "Market",
+    "exchange": "MUFEX",
+    "long_short": "Short",
+    "sl_price": null,
+    "symbol": "BTCUSDT",
+    "tp_price": 69000
+  },
+  {
+    "asset_size": 1.1,
+    "asset_tick_step": 2,
+    "entry_price": null,
+    "entry_type": "Market",
+    "exchange": "Bybit",
+    "long_short": "Long",
+    "sl_price": 3690,
+    "symbol": "ETHUSDT",
+    "tp_price": 4000
+  },
+  {
+    "asset_size": 1000,
+    "asset_tick_step": 0,
+    "entry_price": 0.45,
+    "entry_type": "limit",
+    "exchange": "Bybit",
+    "long_short": "LONG",
+    "sl_price": null,
+    "symbol": "XRPUSDT",
+    "tp_price": null
+  },
+  {
+    "asset_size": 0.0036419,
+    "asset_tick_step": 3,
+    "entry_price": null,
+    "entry_type": "market",
+    "exchange": "MUFEX",
+    "long_short": "LONG",
+    "sl_price": 69300,
+    "symbol": "btcusdt",
+    "tp_price": 70300
+  }
+]
