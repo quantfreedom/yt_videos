@@ -4,7 +4,7 @@ from os.path import exists
 from time import perf_counter
 from time import gmtime, strftime
 from quantfreedom.backtesters import run_df_backtest
-from long_rsi_rising_falling import rsi_rising_falling_long_strat
+from rsi_rising_falling import rsi_rising_falling_long_strat
 
 
 if __name__ == "__main__":
@@ -14,18 +14,19 @@ if __name__ == "__main__":
         remove(h5_path)
 
     print("loading candles")
-    
+
     candle_path = "../dbs/oct_dec_candles.pkl"
     with open(candle_path, "rb") as f:
-        oct_dec_candles = pickle.load(f)
+        candles = pickle.load(f)
 
     backtest_results = run_df_backtest(
-        candles=oct_dec_candles,
+        candles=candles,
         strategy=rsi_rising_falling_long_strat,
         threads=32,
-        step_by=2,
+        step_by=1,
     )
     print("\n" + "Backtest results done now saving to hdf5")
+    
     backtest_results.to_hdf(
         h5_path,
         key="backtest_results",

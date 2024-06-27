@@ -1,11 +1,11 @@
 import numpy as np
-import plotly.graph_objects as go
 from logging import getLogger
 from typing import NamedTuple
+import plotly.graph_objects as go
 from os.path import join, abspath
-from quantfreedom.helpers.helper_funcs import np_lookback_one
-from quantfreedom.indicators.tv_indicators import rsi_tv
 from quantfreedom.core.strategy import Strategy
+from quantfreedom.helpers.helper_funcs import np_lb_one
+from quantfreedom.indicators.tv_indicators import rsi_tv
 from quantfreedom.core.enums import (
     BacktestSettings,
     CandleBodyType,
@@ -17,6 +17,7 @@ from quantfreedom.core.enums import (
     StaticOrderSettings,
     StopLossStrategyType,
     TakeProfitStrategyType,
+    TrailingSLStrategyType,
 )
 
 logger = getLogger()
@@ -67,22 +68,20 @@ class RSIRisingFalling(Strategy):
         if long_short == "long":
             og_dos_tuple = long_og_dos_tuple
             self.chart_title = "Long Signal"
-            self.entry_message = self.long_entry_message
             self.live_bt = self.long_live_bt
+            self.entry_message = self.long_entry_message
             self.live_evaluate = self.long_live_evaluate
             self.set_cur_ind_tuple = self.long_set_cur_ind_tuple
             self.set_entries_exits_array = self.long_set_entries_exits_array
-            self.set_live_bt_entries_exits_array = self.long_live_bt_set_entries_exits_array
             self.static_os_tuple = long_static_os_tuple
         else:
             og_dos_tuple = None
             self.chart_title = "short Signal"
-            self.entry_message = self.short_entry_message
             self.live_bt = self.short_live_bt
+            self.entry_message = self.short_entry_message
             self.live_evaluate = self.short_live_evaluate
             self.set_cur_ind_tuple = self.short_set_cur_ind_tuple
             self.set_entries_exits_array = self.short_set_entries_exits_array
-            self.set_live_bt_entries_exits_array = self.short_live_bt_set_entries_exits_array
             self.static_os_tuple = None
 
         self.set_og_ind_and_dos_tuples(
@@ -118,7 +117,11 @@ class RSIRisingFalling(Strategy):
         )
 
         if shuffle_bool:
-            final_cart_prod_array = np.random.default_rng().permutation(filtered_cart_prod_array, axis=1)
+            rng = np.random.default_rng()
+            final_cart_prod_array = rng.permutation(
+                filtered_cart_prod_array,
+                axis=1,
+            )
         else:
             final_cart_prod_array = filtered_cart_prod_array.copy()
 
@@ -231,11 +234,6 @@ below_rsi_pp= {below_rsi_pp}
         logger.info("\n\n")
         logger.info(f"Entry time!!!")
 
-    #######################
-    ####### reg BT ########
-    ####### reg BT ########
-    #######################
-
     def long_set_entries_exits_array(
         self,
         candles: FootprintCandlesTuple,
@@ -249,19 +247,16 @@ below_rsi_pp= {below_rsi_pp}
             self.rsi = np.around(rsi, 1)
             logger.debug("Created RSI")
 
-            rsi_lb = np_lookback_one(
+            rsi_lb = np_lb_one(
                 arr=self.rsi,
                 lookback=2,
-                include_current=False,
-                fill_value=np.nan,
-                fwd_bwd="fwd",
             )
 
             p_rsi = rsi_lb[:, 0]
             pp_rsi = rsi_lb[:, 1]
 
             falling = pp_rsi > p_rsi
-            rising = self.rsi > p_rsi
+            rising = p_rsi < self.rsi
 
             is_below_cur = self.rsi < self.cur_ind_set_tuple.below_rsi_cur
             is_below_p = p_rsi < self.cur_ind_set_tuple.below_rsi_p
@@ -273,181 +268,16 @@ below_rsi_pp= {below_rsi_pp}
 
             self.exit_prices = np.full_like(self.rsi, np.nan)
 
-            self.entries[: long_static_os_tuple.starting_bar] = False
-            self.entry_signals[: long_static_os_tuple.starting_bar] = np.nan
-            self.exit_prices[: long_static_os_tuple.starting_bar] = np.nan
+            starting_bar = self.static_os_tuple.starting_bar
+
+            self.entries[:starting_bar] = False
+            self.entry_signals[:starting_bar] = np.nan
+            self.exit_prices[:starting_bar] = np.nan
 
             logger.debug("Created entries exits")
         except Exception as e:
             logger.error(f"Exception long_set_entries_exits_array -> {e}")
             raise Exception(f"Exception long_set_entries_exits_array -> {e}")
-
-    ########################
-    ####### live BT ########
-    ####### live BT ########
-    ########################
-
-    def long_live_bt_set_entries_exits_array(
-        self,
-        candles: FootprintCandlesTuple,
-    ):
-        candle_len = candles.candle_asset_volumes.size
-        self.entries = np.full(candle_len, False)
-        self.exit_prices = np.full(candle_len, np.nan)
-        self.entry_signals = np.full(candle_len, np.nan)
-        self.rsi = rsi_tv(
-            source=candles.candle_close_prices,
-            length=self.cur_ind_set_tuple.rsi_length,
-        )
-
-    def long_live_bt(
-        self,
-        bar_index: int,
-        beg: int,
-        candles: FootprintCandlesTuple,
-        end: int,
-    ):
-
-        try:
-            candles = self.reg_candle_chunk(
-                candles=candles,
-                beg=beg,
-                end=end,
-            )
-
-            rsi = rsi_tv(
-                source=candles.candle_close_prices,
-                length=self.cur_ind_set_tuple.rsi_length,
-            )
-
-            rsi = np.around(rsi, 1)
-            logger.debug("Created RSI")
-
-            cur_rsi = rsi[-1]
-            p_rsi = rsi[-2]
-            pp_rsi = rsi[-3]
-
-            falling = pp_rsi > p_rsi
-            rising = cur_rsi > p_rsi
-
-            is_below_cur = cur_rsi < self.cur_ind_set_tuple.below_rsi_cur
-            is_below_p = p_rsi < self.cur_ind_set_tuple.below_rsi_p
-            is_below_pp = pp_rsi < self.cur_ind_set_tuple.below_rsi_pp
-
-            result = is_below_cur & is_below_p & is_below_pp & falling & rising
-
-            if result:
-                self.entry_signals[bar_index] = cur_rsi
-                return True
-            else:
-                return False
-        except Exception as e:
-            logger.error(f"Exception long_live_bt -> {e}")
-            raise Exception(f"Exception long_live_bt -> {e}")
-
-    #####################
-    ####### live ########
-    ####### live ########
-    #####################
-
-    def long_live_evaluate(
-        self,
-        candles: FootprintCandlesTuple,
-    ):
-
-        try:
-            rsi = rsi_tv(
-                source=candles.candle_close_prices,
-                length=self.cur_ind_set_tuple.rsi_length,
-            )
-
-            rsi = np.around(rsi, 1)
-            logger.debug("Created RSI")
-
-            cur_rsi = rsi[-1]
-            p_rsi = rsi[-2]
-            pp_rsi = rsi[-3]
-
-            falling = pp_rsi > p_rsi
-            rising = cur_rsi > p_rsi
-
-            is_below_cur = cur_rsi < self.cur_ind_set_tuple.below_rsi_cur
-            is_below_p = p_rsi < self.cur_ind_set_tuple.below_rsi_p
-            is_below_pp = pp_rsi < self.cur_ind_set_tuple.below_rsi_pp
-
-            result = is_below_cur & is_below_p & is_below_pp & falling & rising
-
-            if result:
-                return True
-            else:
-                return False
-        except Exception as e:
-            logger.error(f"Exception long_live_evaluate -> {e}")
-            raise Exception(f"Exception long_live_evaluate -> {e}")
-
-    #######################################################
-    #######################################################
-    #######################################################
-    ##################      short    ######################
-    ##################      short    ######################
-    ##################      short    ######################
-    #######################################################
-    #######################################################
-    #######################################################
-
-    def short_set_cur_ind_tuple(
-        self,
-        set_idx: int,
-    ):
-        pass
-
-    def short_entry_message(
-        self,
-        bar_index: int,
-    ):
-        pass
-
-    #######################
-    ####### reg BT ########
-    ####### reg BT ########
-    #######################
-
-    def short_set_entries_exits_array(
-        self,
-        candles: FootprintCandlesTuple,
-    ):
-        pass
-
-    ########################
-    ####### live BT ########
-    ####### live BT ########
-    ########################
-
-    def short_live_bt_set_entries_exits_array(
-        self,
-        candles: FootprintCandlesTuple,
-    ):
-        pass
-
-    def short_live_bt(
-        self,
-        bar_index: int,
-        beg: int,
-        candles: FootprintCandlesTuple,
-        end: int,
-    ):
-        pass
-
-    #####################
-    ####### live ########
-    ####### live ########
-    #####################
-
-    def short_live_evaluate(
-        self,
-        candles: FootprintCandlesTuple,
-    ):
-        pass
 
     #######################################################
     #######################################################
@@ -534,34 +364,25 @@ long_static_os_tuple = StaticOrderSettings(
     pg_min_max_sl_bcb="min",
     sl_strategy_type=StopLossStrategyType.SLBasedOnCandleBody,
     sl_to_be_bool=False,
-    starting_bar=100,
+    starting_bar=50,
     starting_equity=1000.0,
     static_leverage=None,
     tp_fee_type="limit",
     tp_strategy_type=TakeProfitStrategyType.RiskReward,
-    trail_sl_bool=True,
+    trailing_sl_strategy_type=TrailingSLStrategyType.CBAboveBelow,
     z_or_e_type=None,
 )
 
 long_og_dos_tuple = DynamicOrderSettings(
     account_pct_risk_per_trade=np.array([10]),
-    max_trades=np.array([4, 6, 8]),
-    risk_reward=np.array([5, 8, 10, 12]),
-    sl_based_on_add_pct=np.array([0.3, 0.5, 0.7]),
+    max_trades=np.array([4]),
+    risk_reward=np.array([5]),
+    sl_based_on_add_pct=np.array([0.3]),
     sl_based_on_lookback=np.array([50]),
     sl_bcb_type=np.array([CandleBodyType.Low]),
     sl_to_be_cb_type=np.array([CandleBodyType.Nothing]),
     sl_to_be_when_pct=np.array([0]),
     trail_sl_bcb_type=np.array([CandleBodyType.Low]),
-    trail_sl_by_pct=np.array([2, 3, 4]),
-    trail_sl_when_pct=np.array([2, 3, 4]),
-)
-
-rsi_rising_falling_long_strat = RSIRisingFalling(
-    long_short="long",
-    shuffle_bool=True,
-    rsi_length=np.array([15, 25, 35]),
-    below_rsi_cur=np.array([30, 40, 60]),
-    below_rsi_p=np.array([30, 40, 50]),
-    below_rsi_pp=np.array([30, 40, 50]),
+    trail_sl_by_pct=np.array([2]),
+    trail_sl_when_pct=np.array([2]),
 )
