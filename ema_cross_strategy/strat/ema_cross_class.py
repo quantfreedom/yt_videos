@@ -3,10 +3,10 @@ from os.path import join, abspath
 
 from quantfreedom import FootprintCandlesTuple, Strategy
 
-from ema_cross.strat.dos_ind_cart_funcs import get_cur_ind_set_tuple, get_og_ind_and_dos_tuples
-from ema_cross.strat.helper_class import StratHelpers
-from ema_cross.strat.plotting_funcs import plotting_signals
-from ema_cross.strat.tuples_and_variables import (
+from ema_cross_strategy.strat.dos_ind_cart_funcs import get_cur_ind_set_tuple, get_og_ind_and_dos_tuples
+from ema_cross_strategy.strat.helper_class import StratHelpers
+from ema_cross_strategy.strat.plotting_funcs import plotting_signals
+from ema_cross_strategy.strat.tuples_and_variables import (
     IndicatorSettings,
     static_os_tuple,
     exchange_settings_tuple,

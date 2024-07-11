@@ -4,7 +4,7 @@ from logging import getLogger
 
 from quantfreedom import Strategy, DynamicOrderSettings
 
-from ema_cross.strat.tuples_and_variables import IndicatorSettings, dos_tuple
+from ema_cross_strategy.strat.tuples_and_variables import IndicatorSettings, dos_tuple
 
 logger = getLogger()
 

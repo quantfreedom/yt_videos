@@ -7,7 +7,7 @@ from time import perf_counter, gmtime, strftime
 from quantfreedom.backtesters import run_df_backtest
 from quantfreedom.core.enums import FootprintCandlesTuple
 
-from ema_cross import Long_Strat
+from ema_cross_strategy import Long_Strat
 
 
 if __name__ == "__main__":

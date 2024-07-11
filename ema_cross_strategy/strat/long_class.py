@@ -2,7 +2,7 @@ import numpy as np
 
 from quantfreedom import FootprintCandlesTuple
 
-from ema_cross.strat.ema_cross_class import EMACross
+from ema_cross_strategy.strat.ema_cross_class import EMACross
 
 
 class LongEMACross(EMACross):
